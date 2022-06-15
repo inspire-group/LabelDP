@@ -1,0 +1,11 @@
+numpy
+pyyaml
+easydict
+torchvision
+matplotlib
+snippy
+scikit-learn
+faiss-gpu
+tensorboard
+tqdm
+

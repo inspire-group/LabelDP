@@ -1,0 +1,783 @@
+{
+    "T": 0.5,
+    "alpha": 4,
+    "average_loss": 0,
+    "batch_size": 128,
+    "learning_rate": 0.02,
+    "noise_mode": "sym",
+    "num_workers": 1,
+    "p_threshold": 0.5,
+    "preaugment": false,
+    "save_every": 25,
+    "seed": 0,
+    "warmup_aug_probability": 1,
+    "warmup_batch_size": 128,
+    "dataset": "cifar10",
+    "num_class": 10,
+    "warm_up": 10,
+    "seed": 123456789,
+    "warmup_transform": "transform_weak_10",           
+    "configs": { 
+        "ndp":{
+            "configs": {
+                "0sym": {
+                    "r": 0,
+                    "p_threshold": -1,
+                    "lambda_u": 0,
+                    "average_loss": 0,
+                    "num_epochs": 300,
+                    "lr_switch_epoch": 150,
+                    "configs": {
+                        "Expansion": {
+                            "num_epochs": 200,
+                            "lr_switch_epoch": 100,
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "configs": {
+                                "Strong": {
+                                    "preaugment": {
+                                        "transform": "transform_strong_10",
+                                        "ratio": 2
+                                    }
+                                },
+                                "Weak": {
+                                    "preaugment": {
+                                        "transform": "transform_weak_10",
+                                        "ratio": 2
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-WS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "SAW": {
+                                    "warmup_transform": "transform_strong_10"
+                                },
+                                "RandAug": {
+                                    "labeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "unlabeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "configs": {
+                                        "n2m10": {
+                                            "randaugment_params": {
+                                                "n": 2,
+                                                "m": 10
+                                            }
+                                        },
+                                        "n3m5": {
+                                            "randaugment_params": {
+                                                "n": 3,
+                                                "m": 5
+                                            }
+                                        },
+                                        "n1m6": {
+                                            "randaugment_params": {
+                                                "n": 1,
+                                                "m": 6
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-SS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "Runtime-S": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "AugDesc-WW": {
+                            "labeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ]
+                        },
+                        "Raw": {
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "randres":{
+            "configs": {
+                "0.5": {
+                    "r": 0.8,
+                    "p_threshold": 0.5,
+                    "lambda_u": 25,
+                    "average_loss": 0,
+                    "configs": {
+                        "AugDesc-WS": {
+                            "num_epochs": 350,
+                            "lr_switch_epoch": 200,
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "SAW": {
+                                    "warmup_transform": "transform_strong_10"
+                                }
+                            }
+                        }
+                    }
+                },
+                "1": {
+                    "r":0.8,
+                    "p_threshold": 0.5,
+                    "lambda_u": 25,
+                    "average_loss": 0,
+                    "configs": {
+                        "AugDesc-WS": {
+                            "num_epochs": 350,
+                            "lr_switch_epoch": 200,
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "SAW": {
+                                    "warmup_transform": "transform_strong_10"
+                                }
+                            }
+                        }
+                    }
+                }, 
+                "2": {
+                    "r":0.2,
+                    "p_threshold": 0.5,
+                    "lambda_u": 0,
+                    "average_loss": 0,
+                    "num_epochs": 300,
+                    "lr_switch_epoch": 150,
+                    "configs": {
+                        "Expansion": {
+                            "num_epochs": 200,
+                            "lr_switch_epoch": 100,
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "configs": {
+                                "Strong": {
+                                    "preaugment": {
+                                        "transform": "transform_strong_10",
+                                        "ratio": 2
+                                    }
+                                },
+                                "Weak": {
+                                    "preaugment": {
+                                        "transform": "transform_weak_10",
+                                        "ratio": 2
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-WS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "SAW": {
+                                    "warmup_transform": "transform_strong_10"
+                                },
+                                "RandAug": {
+                                    "labeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "unlabeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "configs": {
+                                        "n2m10": {
+                                            "randaugment_params": {
+                                                "n": 2,
+                                                "m": 10
+                                            }
+                                        },
+                                        "n3m5": {
+                                            "randaugment_params": {
+                                                "n": 3,
+                                                "m": 5
+                                            }
+                                        },
+                                        "n1m6": {
+                                            "randaugment_params": {
+                                                "n": 1,
+                                                "m": 6
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-SS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "Runtime-S": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "AugDesc-WW": {
+                            "labeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ]
+                        },
+                        "Raw": {
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ]
+                        }
+                    }
+                },
+                "3": {
+                    "r":0.2,
+                    "p_threshold": 0.5,
+                    "lambda_u": 0,
+                    "average_loss": 0,
+                    "num_epochs": 300,
+                    "lr_switch_epoch": 150,
+                    "configs": {
+                        "Expansion": {
+                            "num_epochs": 200,
+                            "lr_switch_epoch": 100,
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "configs": {
+                                "Strong": {
+                                    "preaugment": {
+                                        "transform": "transform_strong_10",
+                                        "ratio": 2
+                                    }
+                                },
+                                "Weak": {
+                                    "preaugment": {
+                                        "transform": "transform_weak_10",
+                                        "ratio": 2
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-WS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "SAW": {
+                                    "warmup_transform": "transform_strong_10"
+                                },
+                                "RandAug": {
+                                    "labeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "unlabeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "configs": {
+                                        "n2m10": {
+                                            "randaugment_params": {
+                                                "n": 2,
+                                                "m": 10
+                                            }
+                                        },
+                                        "n3m5": {
+                                            "randaugment_params": {
+                                                "n": 3,
+                                                "m": 5
+                                            }
+                                        },
+                                        "n1m6": {
+                                            "randaugment_params": {
+                                                "n": 1,
+                                                "m": 6
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-SS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "Runtime-S": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "AugDesc-WW": {
+                            "labeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ]
+                        },
+                        "Raw": {
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ]
+                        }
+                    }
+                },                
+                "4": {
+                    "r":0.2,
+                    "p_threshold": 0.5,
+                    "lambda_u": 0,
+                    "average_loss": 0,
+                    "num_epochs": 300,
+                    "lr_switch_epoch": 150,
+                    "configs": {
+                        "Expansion": {
+                            "num_epochs": 200,
+                            "lr_switch_epoch": 100,
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "configs": {
+                                "Strong": {
+                                    "preaugment": {
+                                        "transform": "transform_strong_10",
+                                        "ratio": 2
+                                    }
+                                },
+                                "Weak": {
+                                    "preaugment": {
+                                        "transform": "transform_weak_10",
+                                        "ratio": 2
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-WS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "SAW": {
+                                    "warmup_transform": "transform_strong_10"
+                                },
+                                "RandAug": {
+                                    "labeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "unlabeled_transforms": [
+                                        "transform_strong_randaugment_10",
+                                        "transform_strong_randaugment_10",
+                                        "transform_weak_10",
+                                        "transform_weak_10"
+                                    ],
+                                    "configs": {
+                                        "n2m10": {
+                                            "randaugment_params": {
+                                                "n": 2,
+                                                "m": 10
+                                            }
+                                        },
+                                        "n3m5": {
+                                            "randaugment_params": {
+                                                "n": 3,
+                                                "m": 5
+                                            }
+                                        },
+                                        "n1m6": {
+                                            "randaugment_params": {
+                                                "n": 1,
+                                                "m": 6
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "AugDesc-SS": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "Runtime-S": {
+                            "labeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_10",
+                                "transform_strong_10"
+                            ]
+                        },
+                        "AugDesc-WW": {
+                            "labeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ]
+                        },
+                        "Raw": {
+                            "warmup_transform": "transform_none_10",
+                            "labeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_none_10",
+                                "transform_none_10"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "pate":{
+            "r":0.2,
+            "p_threshold": 0.5,
+            "lambda_u": 0,
+            "average_loss": 0,
+            "num_epochs": 300,
+            "lr_switch_epoch": 150,
+            "configs":{
+                "Expansion": {
+                    "num_epochs": 200,
+                    "lr_switch_epoch": 100,
+                    "warmup_transform": "transform_none_10",
+                    "labeled_transforms": [
+                        "transform_none_10",
+                        "transform_none_10"
+                    ],
+                    "unlabeled_transforms": [
+                        "transform_none_10",
+                        "transform_none_10"
+                    ],
+                    "configs": {
+                        "Strong": {
+                            "preaugment": {
+                                "transform": "transform_strong_10",
+                                "ratio": 2
+                            }
+                        },
+                        "Weak": {
+                            "preaugment": {
+                                "transform": "transform_weak_10",
+                                "ratio": 2
+                            }
+                        }
+                    }
+                },
+                "AugDesc-WS": {
+                    "labeled_transforms": [
+                        "transform_strong_10",
+                        "transform_strong_10",
+                        "transform_weak_10",
+                        "transform_weak_10"
+                ],
+                    "unlabeled_transforms": [
+                        "transform_strong_10",
+                        "transform_strong_10",
+                        "transform_weak_10",
+                        "transform_weak_10"
+                    ],
+                    "configs": {
+                        "SAW": {
+                            "warmup_transform": "transform_strong_10"
+                        },
+                        "RandAug": {
+                            "labeled_transforms": [
+                                "transform_strong_randaugment_10",
+                                "transform_strong_randaugment_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "unlabeled_transforms": [
+                                "transform_strong_randaugment_10",
+                                "transform_strong_randaugment_10",
+                                "transform_weak_10",
+                                "transform_weak_10"
+                            ],
+                            "configs": {
+                                "n2m10": {
+                                    "randaugment_params": {
+                                        "n": 2,
+                                        "m": 10
+                                    }
+                                },
+                                "n3m5": {
+                                    "randaugment_params": {
+                                        "n": 3,
+                                        "m": 5
+                                    }
+                                },
+                                "n1m6": {
+                                    "randaugment_params": {
+                                        "n": 1,
+                                        "m": 6
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "AugDesc-SS": {
+                    "labeled_transforms": [
+                        "transform_strong_10",
+                        "transform_strong_10",
+                        "transform_strong_10",
+                        "transform_strong_10"
+                    ],
+                    "unlabeled_transforms": [
+                        "transform_strong_10",
+                        "transform_strong_10",
+                        "transform_strong_10",
+                        "transform_strong_10"
+                    ]
+                },
+                "Runtime-S": {
+                    "labeled_transforms": [
+                        "transform_strong_10",
+                        "transform_strong_10"
+                    ],
+                    "unlabeled_transforms": [
+                        "transform_strong_10",
+                        "transform_strong_10"
+                    ]
+                },
+                "AugDesc-WW": {
+                    "labeled_transforms": [
+                        "transform_weak_10",
+                        "transform_weak_10",
+                        "transform_weak_10",
+                        "transform_weak_10"
+                    ],
+                    "unlabeled_transforms": [
+                        "transform_weak_10",
+                        "transform_weak_10",
+                        "transform_weak_10",
+                        "transform_weak_10"
+                    ]
+                },
+                "Raw": {
+                    "warmup_transform": "transform_none_10",
+                    "labeled_transforms": [
+                        "transform_none_10",
+                        "transform_none_10"
+                    ],
+                    "unlabeled_transforms": [
+                        "transform_none_10",
+                        "transform_none_10"
+                    ]
+                }
+            }
+        }
+    }
+}
