@@ -68,7 +68,7 @@ def main():
     parser.add_argument('--num-workers', type=int, default=1,
                         help='number of workers')
     parser.add_argument('--dataset', default='cifar10', type=str,
-                        choices=['cifar10', 'cifar100'],
+                        choices=['cifar10', 'cifar100', 'cinic10'],
                         help='dataset name')
     parser.add_argument('--num-labeled', type=int, default=4000,
                         help='number of labeled data')
@@ -126,13 +126,15 @@ def main():
                         help="For distributed training: local_rank")
     parser.add_argument('--no-progress', action='store_true',
                         help="don't use progress bar")
-
     args = parser.parse_args()
     if args.epsilon == int(args.epsilon):
         args.epsilon = int(args.epsilon)
     if args.learningmode == 'ldpssl':
-        args.num_labeled = 50000
         args.expand_labels = False
+        if args.dataset == 'cinic10':
+            args.num_labeled = 90000
+        else:
+            args.num_labeled = 50000
     if args.noisemode == 'ndp':
         args.learningmode = 'ssl'
     args.out = os.path.join(MyPath.ckpt_root_dir(), "FixMatch", args.dataset, args.arch, args.noisemode, args.learningmode, "eps"+str(args.epsilon)+"seed"+str(args.seed))
@@ -153,7 +155,7 @@ def main():
             model = resnetmodel.resnet18(num_class=args.num_classes)
         elif args.arch == 'vgg':
             import models.vgg  as vgg
-            if args.dataset == 'cifar10':
+            if args.dataset == 'cifar10' or args.dataset=='cinic10':
                 model = vgg.VGG('VGG11', num_class=10)
             else:
                 model = vgg.VGG('VGG19', num_class=100)
@@ -163,7 +165,8 @@ def main():
         return model
 
     if args.local_rank == -1:
-        device = torch.device('cuda', args.gpu_id)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        #device = torch.device('cuda', args.gpu_id) if 
         args.world_size = 1
         args.n_gpu = torch.cuda.device_count()
     else:
@@ -196,7 +199,7 @@ def main():
         os.makedirs(args.out, exist_ok=True)
         args.writer = SummaryWriter(args.out)
 
-    if args.dataset == 'cifar10':
+    if args.dataset == 'cifar10' or args.dataset == 'cinic10':
         args.num_classes = 10
         if args.arch == 'wideresnet':
             args.model_depth = 28

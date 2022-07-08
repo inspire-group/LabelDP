@@ -18,7 +18,7 @@ from utils.evaluate_utils import get_predictions, hungarian_evaluate
 from utils.memory import MemoryBank 
 from utils.utils import fill_memory_bank
 from PIL import Image
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 FLAGS = argparse.ArgumentParser(description='Evaluate models from the model zoo')
 FLAGS.add_argument('--config_exp', help='Location of config file')
 FLAGS.add_argument('--model', help='Location where model is saved')
@@ -69,7 +69,7 @@ def main():
         raise NotImplementedError
         
     # CUDA
-    model.cuda()
+    model.to(device)#cuda()
 
     # Perform evaluation
     if config['setup'] in ['simclr', 'moco']:
@@ -82,7 +82,7 @@ def main():
         else: # Mine neighbors before MLP
             memory_bank = MemoryBank(len(dataset), config['model_kwargs']['features_dim'], 
                                     config['num_classes'], config['temperature'])
-        memory_bank.cuda()
+        memory_bank.to(device)#cuda()
 
         print('Fill Memory Bank')
         fill_memory_bank(dataloader, model, memory_bank)

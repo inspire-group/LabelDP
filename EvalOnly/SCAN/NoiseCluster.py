@@ -11,14 +11,11 @@ import json
 import sys
 import os
 sys.path.append("./../")
-from utils.common_config import get_val_dataset, get_val_transformations, get_val_dataloader,\
-                                get_model
-from utils.evaluate_utils import get_predictions, hungarian_evaluate
-from utils.memory import MemoryBank 
-from utils.utils import fill_memory_bank
+
 from PIL import Image
 from scipy.optimize import linear_sum_assignment
 from mypath import MyPath
+from agm import calibrateAnalyticGaussianMechanism
 
 FLAGS = argparse.ArgumentParser(description='Evaluate models from the model zoo')
 FLAGS.add_argument('--dataset', type=str, default='cifar10', help='Data')
@@ -196,14 +193,15 @@ def main():
 
     print("\n\nGenerated noisy label")
     if args.dataset == 'cifar10':
-        eps_list = [0.006,0.007,0.5,1,2,4]
+        eps_list = [0.002, 0.003, 0.5,1,2,4]
 
     elif args.dataset=='cifar100':
-        eps_list = [0.4,0.5,1,2,4,6]
+        eps_list = [0.3, 0.4, 1,2,4,6]
     else:
-        eps_list = [0.02,0.03,0.5,1,2,4]
+        eps_list = [0.01,0.02,0.5,1,2,4]
 
 
+    delta = 1e-5
     for eps in eps_list:
         rseed = 42#np.random.seed(42)
         if eps == int(eps):
@@ -211,13 +209,16 @@ def main():
         noise_label = random_response(train_label, eps, num_k, rseed)
         p1 = np.exp(eps)/(np.exp(eps)+num_k-1)
         p2 = 1/(np.exp(eps)+num_k-1)
-        print("epsilon:", eps, "label acc:", np.mean(noise_label==train_label))
+        print("epsilon:", eps, "p1:", p1, "label acc:", np.mean(noise_label==train_label))
 
-        sigma = 2*np.sqrt(np.log(1.25*1e5))/eps
+        sigma = calibrateAnalyticGaussianMechanism(eps, delta, np.sqrt(2))
+        #sigma = 2*np.sqrt(np.log(1.25/delta))/eps
+
+
         match_eval = gaussian_noise_max_voting(train_cluster_label, train_label, sigma, num_k)
         train_convert_label = label_match(train_cluster_label, match_eval, num_k)
         test_convert_label = label_match(test_cluster_label, match_eval, num_k)
-        print("Fixed Gaussian noise majority voting acc: trainset: %.8f, testset: %.8f\n"%(np.mean(train_convert_label==train_label), np.mean(test_convert_label==test_label)))
+        print("Gaussian noise majority voting acc: trainset: %.8f, testset: %.8f\n"%(np.mean(train_convert_label==train_label), np.mean(test_convert_label==test_label)))
 
 if __name__ == "__main__":
     main() 

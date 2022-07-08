@@ -16,13 +16,13 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from sklearn.mixture import GaussianMixture
 
 from torch.utils.data import DataLoader, Dataset
+import dataloader_cifar as dataloader
 
-import dataloader_cinic as dataloader
-#from PreResNet import *
 import sys
 sys.path.append("./../")
 from preset_parser import *
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class AverageMeter(object):
     """Computes and stores the average and current value
        Imported from https://github.com/pytorch/examples/blob/master/imagenet/main.py#L247-L262
@@ -43,9 +43,9 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
-
-
 if __name__ == "__main__":
+
+
     parser = argparse.ArgumentParser(description='PyTorch LabelDP')
     parser.add_argument('--epsilon', type=float, default=3,
                         help='random respond epsilon')
@@ -53,13 +53,16 @@ if __name__ == "__main__":
                         choices=['sym', 'asym', 'randres', 'pate', 'ndp'],
                         help='noise type')
     parser.add_argument('--dataset', type = str, 
-                        choices=['cifar10', 'cifar100', 'cinic10'],)
+                        choices=['cifar10', 'cifar100', 'cinic10'],
+                        help='data set')
     parser.add_argument("--preset", required=True, type=str)
-    parser.add_argument("--arch", type = str, choices = ['resnet18', 'vgg', 'wideresnet28'], default = 'resnet18')
+    parser.add_argument("--arch", type = str, choices = ['resnet18', 'wideresnet28', 'vgg'], default = 'resnet18')
     
     cmdline_args = parser.parse_args()
     print(dict(cmdline_args._get_kwargs()))
 
+
+    #print(dict(args._get_kwargs()))
     if cmdline_args.epsilon == int(cmdline_args.epsilon):
         cmdline_args.epsilon = int(cmdline_args.epsilon)
 
@@ -110,19 +113,19 @@ if __name__ == "__main__":
             w_x = w_x.view(-1, 1).type(torch.FloatTensor)
 
             inputs_x, inputs_x2, inputs_x3, inputs_x4, labels_x, w_x = (
-                inputs_x.cuda(),
-                inputs_x2.cuda(),
-                inputs_x3.cuda(),
-                inputs_x4.cuda(),
-                labels_x.cuda(),
-                w_x.cuda(),
+                inputs_x.to(device),
+                inputs_x2.to(device),
+                inputs_x3.to(device),
+                inputs_x4.to(device),
+                labels_x.to(device),
+                w_x.to(device),
             )
 
             inputs_u, inputs_u2, inputs_u3, inputs_u4 = (
-                inputs_u.cuda(),
-                inputs_u2.cuda(),
-                inputs_u3.cuda(),
-                inputs_u4.cuda(),
+                inputs_u.to(device),
+                inputs_u2.to(device),
+                inputs_u3.to(device),
+                inputs_u4.to(device),
             )
 
             # inputs u/u2
@@ -188,7 +191,7 @@ if __name__ == "__main__":
 
             # regularization
             prior = torch.ones(args.num_class) / args.num_class
-            prior = prior.cuda()
+            prior = prior.to(device)
             pred_mean = torch.softmax(logits, dim=1).mean(0)
             penalty = torch.sum(prior * torch.log(prior / pred_mean))
 
@@ -201,15 +204,18 @@ if __name__ == "__main__":
             losses_x.update(Lx.item())
             losses_u.update(Lu.item())
 
-        print("%s: %.1f-%s | Epoch [%3d/%3d],  Labeled loss: %.2f, Unlabeled loss: %.2f"% (
+        print(
+        "%s: %.1f-%s | Epoch [%3d/%3d],  Labeled loss: %.2f, Unlabeled loss: %.2f"
+            % (
                 args.dataset,
                 args.r,
                 cmdline_args.noisemode,
                 epoch,
                 args.num_epochs - 1,
                 losses_x.avg,
-                losses_u.avg,))
-        
+                losses_u.avg,
+            )
+        )
         sys.stdout.flush()
 
     def warmup(epoch, net, optimizer, dataloader):
@@ -217,7 +223,7 @@ if __name__ == "__main__":
         num_iter = (len(dataloader.dataset) // dataloader.batch_size) + 1
         losses = AverageMeter()
         for batch_idx, (inputs, labels, path) in enumerate(dataloader):
-            inputs, labels = inputs.cuda(), labels.cuda()
+            inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = CEloss(outputs, labels)
@@ -231,7 +237,11 @@ if __name__ == "__main__":
             L.backward()
             optimizer.step()
 
-        print("%s: %.1f-%s | Epoch [%3d/%3d]  CE-loss: %.4f"%(
+            losses.update(L.item())
+
+        print(
+            "%s: %.1f-%s | Epoch [%3d/%3d]  CE-loss: %.4f"
+            % (
             args.dataset,
             args.r,
             cmdline_args.noisemode,
@@ -250,7 +260,7 @@ if __name__ == "__main__":
         all_predicted = []
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(test_loader):
-                inputs, targets = inputs.cuda(), targets.cuda()
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs1 = net1(inputs)
                 outputs2 = net2(inputs)
                 outputs = outputs1 + outputs2
@@ -275,7 +285,8 @@ if __name__ == "__main__":
             size_u2,
         )
         print(results)
-        sys.stdout.flush()
+        logs.write(results + '\n')
+        logs.flush()
         return accuracy
 
     def eval_train(model, all_loss):
@@ -283,7 +294,7 @@ if __name__ == "__main__":
         losses = torch.zeros(len(eval_loader.dataset))
         with torch.no_grad():
             for batch_idx, (inputs, targets, index) in enumerate(eval_loader):
-                inputs, targets = inputs.cuda(), targets.cuda()
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = CE(outputs, targets)
                 for b in range(inputs.size(0)):
@@ -329,12 +340,12 @@ if __name__ == "__main__":
             probs = torch.softmax(outputs, dim=1)
             return torch.mean(torch.sum(probs.log() * probs, dim=1))
 
-    def create_model(devices=[0]):
-
+    def create_model():
         model = resnetmodel.resnet18(num_class=args.num_class)
-        model = model.cuda()
-        model = torch.nn.DataParallel(model, device_ids=devices).cuda()
+        model = model.to(device)
+        #model = torch.nn.DataParallel(model, device_ids=devices).cuda()
         return model
+
 
     loader = dataloader.dataset_dataloader(
         dataset=args.dataset,
@@ -353,10 +364,11 @@ if __name__ == "__main__":
         augmentation_strategy=args,
     )
 
-    print("| Building net")
-    devices = range(torch.cuda.device_count())
-    net1 = create_model(devices)
-    net2 = create_model(devices)
+
+    print('| Building net')
+    #devices = range(torch.cuda.device_count())
+    net1 = create_model()
+    net2 = create_model()
     cudnn.benchmark = True
 
     criterion = SemiLoss()
@@ -375,7 +387,7 @@ if __name__ == "__main__":
     if args.pretrained_path != "":
         print("Loading from", args.pretrained_path + f"/saved/{args.preset}.pth.tar")
         with open(args.pretrained_path + f"/saved/{args.preset}.pth.tar", "rb") as p:
-            unpickled = torch.load(p)
+            unpickled = torch.load(p, map_location='cpu')
         net1.load_state_dict(unpickled["net1"])
         net2.load_state_dict(unpickled["net2"])
         optimizer1.load_state_dict(unpickled["optimizer1"])
@@ -387,7 +399,7 @@ if __name__ == "__main__":
     elif os.path.exists(os.path.join(args.checkpoint_path, "best", f"{args.preset}.pth.tar")):
         print("Resume from", os.path.join(args.checkpoint_path, "best", f"{args.preset}.pth.tar"))
         with open(os.path.join(args.checkpoint_path, "best", f"{args.preset}.pth.tar"), "rb") as p:
-            unpickled = torch.load(p)
+            unpickled = torch.load(p, map_location='cpu')
         net1.load_state_dict(unpickled["net1"])
         net2.load_state_dict(unpickled["net2"])
         optimizer1.load_state_dict(unpickled["optimizer1"])
@@ -476,6 +488,7 @@ if __name__ == "__main__":
         if best_acc < acc:
             best_epoch = epoch
         best_acc = max(acc, best_acc)
+
 
         data_dict = {
             "epoch": epoch,

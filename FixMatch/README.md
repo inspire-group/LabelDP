@@ -20,7 +20,7 @@ To run ```denoisessl``` learning mode, you need to prepare ```train_cluster_pred
 
 ## DenoiseSSL on CIFAR10
 ```
-python train.cifar.py --dataset cifar10 --batch-size 64 --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
+python train.py --dataset cifar10 --batch-size 64 --arch resnet18 --lr 0.03 --expand-labels --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
 ```
 ```--epsilon```options: 0.5|1|2|4
 ```--noisemode```options: randres|pate
@@ -28,14 +28,14 @@ python train.cifar.py --dataset cifar10 --batch-size 64 --noisemode randres --le
 
 ## LDPSSL on CIFAR10
 ```
-python train_cifar.py --dataset cifar10 --batch-size 64 --noisemode randres --learningmode ldpssl --no-progress --epsilon 4 --seed 5
+python train.py --dataset cifar10 --batch-size 64 --arch resnet18 --lr 0.03 --expand-labels  --noisemode randres --learningmode ldpssl --no-progress --epsilon 4 --seed 5
 ```
 ```--epsilon```options: 0.5|1|2|4
 ```--noisemode```options: randres|pate
 
 ## DenoiseSSL on CIFAR100
 ```
-python train_cifar.py --dataset cifar100 --wdecay 0.001 --batch-size 64 --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
+python train.py --dataset cifar100 --batch-size 64 --arch resnet18 --lr 0.03  --wdecay 0.001 --expand-labels --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
 ```
 ```--epsilon```options: 0.5|1|2|4
 ```--noisemode```options: randres|pate
@@ -43,7 +43,7 @@ python train_cifar.py --dataset cifar100 --wdecay 0.001 --batch-size 64 --noisem
 
 ## LDPSSL on CIFAR100
 ```
-python train_cifar.py --dataset cifar100  --wdecay 0.001 --batch-size 64 --noisemode randres --learningmode ldpssl --no-progress --epsilon 4 --seed 5
+python train.py --dataset cifar100 --batch-size 64 --arch resnet18 --lr 0.03  --wdecay 0.001 --expand-labels  --noisemode randres --learningmode ldpssl --no-progress --epsilon 4 --seed 5
 ```
 ```--epsilon```options: 0.5|1|2|4
 ```--noisemode```options: randres|pate
@@ -51,7 +51,7 @@ python train_cifar.py --dataset cifar100  --wdecay 0.001 --batch-size 64 --noise
 
 ## DenoiseSSL on CINIC10
 ```
-python train_cinic.py --dataset cinic10 --batch-size 64 --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
+python train.py --dataset cinic10 --batch-size 64 --arch resnet18 --lr 0.03 --expand-labels --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
 ```
 ```--epsilon```options: 0.5|1|2|4
 ```--noisemode```options: randres|pate
@@ -59,7 +59,7 @@ python train_cinic.py --dataset cinic10 --batch-size 64 --noisemode randres --le
 
 ## LDPSSL on CINIC10
 ```
-python train_cinic.py --dataset cinic10 --batch-size 64 --noisemode randres --learningmode ldpssl --no-progress --epsilon 4 --seed 5
+python train.py --dataset cinic10 --batch-size 64 --arch resnet18 --lr 0.03 --expand-labels --noisemode randres --learningmode denoisessl --no-progress --epsilon 4 --seed 5
 ```
 ```--epsilon```options: 0.5|1|2|4
 ```--noisemode```options: randres|pate

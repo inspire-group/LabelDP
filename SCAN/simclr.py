@@ -19,7 +19,7 @@ from utils.memory import MemoryBank
 from utils.train_utils import simclr_train
 from utils.utils import fill_memory_bank
 # from termcolor import colored
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Parser
 parser = argparse.ArgumentParser(description='SimCLR')
 parser.add_argument('--config_exp', help='Config file for the experiment')
@@ -36,7 +36,8 @@ def main():
     print('Model is {}'.format(model.__class__.__name__))
     print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in model.parameters()) / 1e6))
     print(model)
-    model = model.cuda()
+
+    model = model.to(device)
    
     # CUDNN
     print('Set CuDNN benchmark') 
@@ -62,17 +63,17 @@ def main():
     memory_bank_base = MemoryBank(len(base_dataset), 
                                 p['model_kwargs']['features_dim'],
                                 p['num_classes'], p['criterion_kwargs']['temperature'])
-    memory_bank_base.cuda()
+    memory_bank_base.to(device)
     memory_bank_val = MemoryBank(len(val_dataset),
                                 p['model_kwargs']['features_dim'],
                                 p['num_classes'], p['criterion_kwargs']['temperature'])
-    memory_bank_val.cuda()
+    memory_bank_val.to(device)
 
     # Criterion
     print('Retrieve criterion')
     criterion = get_criterion(p)
     print('Criterion is {}'.format(criterion.__class__.__name__))
-    criterion = criterion.cuda()
+    criterion = criterion.to(device)
 
     # Optimizer and scheduler
     print('Retrieve optimizer')
@@ -85,13 +86,13 @@ def main():
         checkpoint = torch.load(p['pretext_checkpoint'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
         model.load_state_dict(checkpoint['model'])
-        model.cuda()
+        model = model.to(device)
         start_epoch = checkpoint['epoch']
 
     else:
         print('No checkpoint file at {}'.format(p['pretext_checkpoint']))
         start_epoch = 0
-        model = model.cuda()
+        model = model.to(device)
     
     # Training
     print('Starting main loop')

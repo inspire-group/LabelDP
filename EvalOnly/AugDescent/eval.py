@@ -29,7 +29,7 @@ cifar10_mean = [0.4914, 0.4822, 0.4465]
 cifar10_std = [0.2023, 0.1994, 0.2010]
 cifar100_mean = [0.5071, 0.4867, 0.4408]
 cifar100_std = [0.2675, 0.2565, 0.2761]
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         all_predicted = []
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(testloader):
-                inputs, targets = inputs.cuda(), targets.cuda()
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs1 = net1(inputs)
                 outputs2 = net2(inputs)
                 outputs = outputs1 + outputs2
@@ -99,19 +99,19 @@ if __name__ == "__main__":
         return accuracy
 
 
-    def create_model(devices=[0]):
+    def create_model():
         if args.arch == 'resnet18':
             import models.resnet as resnetmodel
 
         model = resnetmodel.resnet18(num_class=args.num_class)
-        model = model.cuda()
-        model = torch.nn.DataParallel(model, device_ids=devices).cuda()
+        model = model.to(device)
+        #model = torch.nn.DataParallel(model, device_ids=devices).cuda()
         return model
 
     print("| Building net")
-    devices = range(torch.cuda.device_count())
-    net1 = create_model(devices)
-    net2 = create_model(devices)
+    #devices = range(torch.cuda.device_count())
+    net1 = create_model()
+    net2 = create_model()
     cudnn.benchmark = True
 
 

@@ -8,7 +8,6 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-from mypath import MyPath
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 
 
@@ -27,14 +26,14 @@ class CINIC10(Dataset):
     """
 
 
-    def __init__(self,root=MyPath.db_root_dir('cinic10')+'/npy', filen=True, transform=None):
+    def __init__(self, root="/scratch/gpfs/xinyut/datasets/cinic10/npy", filen='train', transform=None):
 
         super(CINIC10, self).__init__()
         self.root = root
         self.transform = transform
         self.file_n = filen  # training set or test set
         self.classes = ['frog', 'airplane', 'horse', 'truck', 'cat', 'deer', 'automobile', 'dog', 'bird', 'ship']
-        
+
         self.data = np.load(os.path.join(root, filen+"_data.npy"))
         self.targets = np.load(os.path.join(root, filen+"_label.npy"))
         self.targets = self.targets.tolist()
@@ -65,9 +64,7 @@ class CINIC10(Dataset):
         if self.transform is not None:
             img = self.transform(img)
 
-        out = {'image': img, 'target': target, 'meta': {'im_size': img_size, 'index': index, 'class_name': class_name}}
-        
-        return out
+        return img, target
 
     def get_image(self, index):
         img = self.data[index]

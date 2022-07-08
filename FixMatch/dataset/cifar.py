@@ -4,6 +4,7 @@ import os
 import numpy as np
 from PIL import Image
 from torchvision import datasets
+from torch.utils.data import Dataset
 from torchvision import transforms
 import torch
 from .randaugment import RandAugmentMC
@@ -15,6 +16,8 @@ cifar10_mean = (0.4914, 0.4822, 0.4465)
 cifar10_std = (0.2023, 0.1994, 0.2010)
 cifar100_mean = (0.5071, 0.4867, 0.4408)
 cifar100_std = (0.2675, 0.2565, 0.2761)
+cinic10_mean = (0.47889522, 0.47227842, 0.43047404)
+cinic10_std = (0.24205776, 0.23828046, 0.25874835)
 
 def majority_vote(preds, targets, num_k):
     res = []
@@ -312,7 +315,114 @@ def get_cifar100(args):
 
     return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 
+def get_cinic10_denoisessl(args):
+    transform_labeled = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(size=32,
+                              padding=int(32*0.125),
+                              padding_mode='reflect'),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cinic10_mean, std=cinic10_std)
+    ])
+    transform_val = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cinic10_mean, std=cinic10_std)
+    ])
+    base_db_root = MyPath.db_root_dir(args.dataset)
+    base_ckpt_root = MyPath.ckpt_root_dir()
+    base_dataset = CINIC10(base_db_root, filen = 'train')
 
+    if args.noisemode =='pate':
+        noise_label_file = os.path.join(base_db_root, "dplabel", "pate","eps_"+str(args.epsilon))
+        print("Loading (noise) DP label by PATE: ", noise_label_file)
+        noise_train_label = torch.load(noise_label_file)      
+    elif args.noisemode == 'randres':
+        noise_label_file =  os.path.join(base_db_root, "dplabel", "rr", "eps"+str(args.epsilon)+".npy")
+        print("Loading (noise) DP label by RandRes: ", noise_label_file)
+        noise_train_label = np.load(noise_label_file)
+    print("Eps: %.2f. Noisy label acc: %.6f"%(args.epsilon, np.mean(base_dataset.targets==noise_train_label)))
+
+    all_train_label = np.array(base_dataset.targets)
+
+    cluster_path = os.path.join(base_ckpt_root, "SCAN", args.dataset, args.arch, "selflabel", "train_cluster_pred.npy")
+    print("Loading cluster from %s model: %s"%(args.arch, cluster_path))
+    raw_cluster_label = np.load(cluster_path)
+
+    tran_metric = majority_vote(raw_cluster_label, noise_train_label, args.num_classes)
+    cluster_label = label_match(raw_cluster_label, tran_metric, args.num_classes)
+
+    print("Eps: %.2f. Cluster label acc: %.6f. Selected label ratio: %.6f."%(args.epsilon, np.mean(cluster_label==all_train_label), np.mean(cluster_label==noise_train_label)))
+    print("Selected label correctness: %4f"%(np.mean(all_train_label[cluster_label==noise_train_label]==noise_train_label[cluster_label==noise_train_label])))
+
+    noise_train_label = (noise_train_label.astype(np.int32)).tolist()
+    
+    train_labeled_idxs, train_unlabeled_idxs = noise_x_u_split(args, noise_train_label, cluster_label, all_train_label)
+
+    train_labeled_dataset = CINICSSL(base_db_root, filen='train', indexs=train_labeled_idxs, noise=noise_train_label, transform=transform_labeled)
+    train_unlabeled_dataset = CINICSSL(base_db_root, filen='train', indexs=train_unlabeled_idxs, noise=noise_train_label, transform=TransformFixMatch(mean=cinic10_mean, std=cinic10_std))
+    test_dataset = CINICSSL(base_db_root, filen='valid', transform=transform_val)
+
+    return train_labeled_dataset, train_unlabeled_dataset, test_dataset
+
+def get_cinic10_ldpssl(args):
+    transform_labeled = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(size=32,
+                              padding=int(32*0.125),
+                              padding_mode='reflect'),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cinic10_mean, std=cinic10_std)
+    ])
+    transform_val = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cinic10_mean, std=cinic10_std)
+    ])
+    base_db_root = MyPath.db_root_dir(args.dataset)
+    base_dataset = CINIC10(base_db_root, filen = 'train')
+
+    if args.noisemode =='pate':
+        noise_label_file = os.path.join(base_db_root, "dplabel", "pate","eps_"+str(args.epsilon))
+        print("Loading (noise) DP label by PATE: ", noise_label_file)
+        noise_train_label = torch.load(noise_label_file)      
+    elif args.noisemode == 'randres':
+        noise_label_file =  os.path.join(base_db_root, "dplabel", "rr", "eps"+str(args.epsilon)+".npy")
+        print("Loading (noise) DP label by RandRes: ", noise_label_file)
+        noise_train_label = np.load(noise_label_file)
+    print("Eps: %.2f. Noisy label acc: %.6f"%(args.epsilon, np.mean(base_dataset.targets==noise_train_label)))
+
+    noise_train_label = (noise_train_label.astype(np.int32)).tolist()
+    
+    train_labeled_idxs, train_unlabeled_idxs = x_u_split(args, noise_train_label)
+    train_labeled_dataset = CINICSSL(base_db_root, filen='train', indexs=train_labeled_idxs, noise=noise_train_label, transform=transform_labeled)
+    train_unlabeled_dataset = CINICSSL(base_db_root, filen='train', indexs=train_unlabeled_idxs, noise=noise_train_label, transform=TransformFixMatch(mean=cinic10_mean, std=cinic10_std))
+    test_dataset = CINICSSL(base_db_root, filen='valid', transform=transform_val)
+
+    return train_labeled_dataset, train_unlabeled_dataset, test_dataset
+
+
+def get_cinic10(args):
+    transform_labeled = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(size=32,
+                              padding=int(32*0.125),
+                              padding_mode='reflect'),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cinic10_mean, std=cinic10_std)
+    ])
+    transform_val = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cinic10_mean, std=cinic10_std)
+    ])
+    base_db_root = MyPath.db_root_dir(args.dataset)
+    base_dataset = CINIC10(base_db_root, filen = 'train')
+
+    train_labeled_idxs, train_unlabeled_idxs = x_u_split(args, base_dataset.targets)
+
+    train_labeled_dataset = CINICSSL(base_db_root, filen='train',indexs=train_labeled_idxs,transform=transform_labeled)
+    train_unlabeled_dataset = CINICSSL(base_db_root, filen='train', indexs=train_unlabeled_idxs, transform=TransformFixMatch(mean=cinic10_mean, std=cinic10_std))
+    test_dataset = CINICSSL(base_db_root, filen='valid', transform=transform_val)
+
+    return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 
 class TransformFixMatch(object):
     def __init__(self, mean, std):
@@ -391,9 +501,90 @@ class CIFAR100SSL(datasets.CIFAR100):
         return img, target
 
 
+class CINIC10(Dataset):
+    """`adapt from CIFAR10 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
+    Args:
+        root (string): Root directory of dataset where directory
+            ``cifar-10-batches-py`` exists or will be saved to if download is set to True.
+        train (bool, optional): If True, creates dataset from training set, otherwise
+            creates from test set.
+        transform (callable, optional): A function/transform that takes in an PIL image
+            and returns a transformed version. E.g, ``transforms.RandomCrop``
+        download (bool, optional): If true, downloads the dataset from the internet and
+            puts it in root directory. If dataset is already downloaded, it is not
+            downloaded again.
+    """
+    def __init__(self, root, filen=True, transform=None, target_transform=None):
+
+        super(CINIC10, self).__init__()
+        self.root = os.path.join(root, 'npy')
+        self.transform = transform
+        self.target_transform = target_transform
+        self.file_n = filen  # training set or test set
+        self.classes = ['frog', 'airplane', 'horse', 'truck', 'cat', 'deer', 'automobile', 'dog', 'bird', 'ship']
+
+        self.data = np.load(os.path.join(self.root, filen+"_data.npy"))
+        self.targets = np.load(os.path.join(self.root, filen+"_label.npy"))
+        self.targets = self.targets.tolist()
+
+        self._load_meta()
+
+    def _load_meta(self):
+        self.class_to_idx = {_class: i for i, _class in enumerate(self.classes)}
+
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
+        Returns:
+            dict: {'image': image, 'target': index of target class, 'meta': dict}
+        """
+        img, target = self.data[index], self.targets[index]
+        img_size = (img.shape[0], img.shape[1])
+        img = Image.fromarray(img)
+        class_name = self.classes[target]        
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img, target
+
+    def get_image(self, index):
+        img = self.data[index]
+        return img
+        
+    def __len__(self):
+        return len(self.data)
+
+
+class CINICSSL(CINIC10):
+    def __init__(self, root, filen, indexs=None, noise=None,
+                 transform=None, target_transform=None):
+        super().__init__(root=root, filen=filen, transform=transform,target_transform=target_transform)
+        if noise is not None:
+            self.targets = noise
+        if indexs is not None:
+            self.data = self.data[indexs]
+            self.targets = np.array(self.targets)[indexs]
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target
+
 DATASET_GETTERS = {'cifar10ssl': get_cifar10,
                    'cifar100ssl': get_cifar100,
                    'cifar10denoisessl': get_cifar10_denoisessl,
                    'cifar100denoisessl': get_cifar100_denoisessl,
                    'cifar10ldpssl': get_cifar10_ldpssl,
-                   'cifar100ldpssl': get_cifar100_ldpssl}
+                   'cifar100ldpssl': get_cifar100_ldpssl,
+                   'cinic10ssl': get_cinic10,
+                   'cinic10denoisessl': get_cinic10_denoisessl,
+                   'cinic10ldpssl': get_cinic10_ldpssl}

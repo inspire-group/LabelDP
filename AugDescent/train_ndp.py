@@ -22,6 +22,8 @@ import sys
 sys.path.append("./../")
 from preset_parser import *
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 class AverageMeter(object):
     """Computes and stores the average and current value
        Imported from https://github.com/pytorch/examples/blob/master/imagenet/main.py#L247-L262
@@ -112,12 +114,12 @@ if __name__ == "__main__":
             w_x = w_x.view(-1, 1).type(torch.FloatTensor)
 
             inputs_x, inputs_x2, inputs_x3, inputs_x4, labels_x, w_x = (
-                inputs_x.cuda(),
-                inputs_x2.cuda(),
-                inputs_x3.cuda(),
-                inputs_x4.cuda(),
-                labels_x.cuda(),
-                w_x.cuda(),
+                inputs_x.to(device),
+                inputs_x2.to(device),
+                inputs_x3.to(device),
+                inputs_x4.to(device),
+                labels_x.to(device),
+                w_x.to(device),
             )
 
             # mixmatch
@@ -164,7 +166,7 @@ if __name__ == "__main__":
         num_iter = (len(dataloader.dataset) // dataloader.batch_size) + 1
         losses = AverageMeter()
         for batch_idx, (inputs, labels, path) in enumerate(dataloader):
-            inputs, labels = inputs.cuda(), labels.cuda()
+            inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = CEloss(outputs, labels)
@@ -197,7 +199,7 @@ if __name__ == "__main__":
         all_predicted = []
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(test_loader):
-                inputs, targets = inputs.cuda(), targets.cuda()
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs1 = net1(inputs)
                 outputs2 = net2(inputs)
                 outputs = outputs1 + outputs2
@@ -230,7 +232,7 @@ if __name__ == "__main__":
         losses = torch.zeros(len(eval_loader.dataset))
         with torch.no_grad():
             for batch_idx, (inputs, targets, index) in enumerate(eval_loader):
-                inputs, targets = inputs.cuda(), targets.cuda()
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = CE(outputs, targets)
                 for b in range(inputs.size(0)):
@@ -276,11 +278,11 @@ if __name__ == "__main__":
             probs = torch.softmax(outputs, dim=1)
             return torch.mean(torch.sum(probs.log() * probs, dim=1))
 
-    def create_model(devices=[0]):
+    def create_model():
 
         model = resnetmodel.resnet18(num_class=args.num_class)
-        model = model.cuda()
-        model = torch.nn.DataParallel(model, device_ids=devices).cuda()
+        model = model.to(device)
+        #model = torch.nn.DataParallel(model, device_ids=devices).cuda()
         return model
 
     loader = dataloader.dataset_dataloader(
@@ -301,9 +303,9 @@ if __name__ == "__main__":
     )
 
     print("| Building net")
-    devices = range(torch.cuda.device_count())
-    net1 = create_model(devices)
-    net2 = create_model(devices)
+    #devices = range(torch.cuda.device_count())
+    net1 = create_model()
+    net2 = create_model()
     cudnn.benchmark = True
 
     criterion = SemiLoss()

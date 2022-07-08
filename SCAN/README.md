@@ -46,7 +46,7 @@ python NoiseCluster.py --dataset cifar10
 ```
 To train on CIFAR100/CINIC10, ```--dataset cifar10``` needs to be changed to  ```--dataset cifar100``` or  ```--dataset cinic10```
 
-See ```FixMatch``` for the use of clusters in denoisessl. 
+See [```FixMatch```](./../FixMatch/dataset/cifar.py#L32-L48) for the use of clusters in denoisessl. 
 
 
 ## Citation

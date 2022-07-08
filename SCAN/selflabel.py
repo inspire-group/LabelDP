@@ -16,7 +16,7 @@ from utils.common_config import get_train_dataset, get_train_transformations,\
 from utils.ema import EMA
 from utils.evaluate_utils import get_predictions, hungarian_evaluate
 from utils.train_utils import selflabel_train
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Parser
 parser = argparse.ArgumentParser(description='Self-labeling')
 parser.add_argument('--config_exp', help='Config file for the experiment')
@@ -31,13 +31,14 @@ def main():
     print('Retrieve model')
     model = get_model(p, p['scan_model'])
     print(model)
-    model = torch.nn.DataParallel(model)
-    model = model.cuda()
+    #model = torch.nn.DataParallel(model)
+    model = model.to(device)#.cuda()
 
     # Get criterion
     print('Get loss')
     criterion = get_criterion(p)
-    criterion.cuda()
+    criterion = criterion.to(device)
+    #criterion.cuda()
     print(criterion)
 
     # CUDNN
@@ -69,7 +70,6 @@ def main():
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])        
         start_epoch = checkpoint['epoch']
-
     else:
         print('No checkpoint file at {}'.format(p['selflabel_checkpoint']))
         start_epoch = 0
@@ -105,17 +105,20 @@ def main():
         print('Checkpoint ...')
         torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(), 
                     'epoch': epoch + 1}, p['selflabel_checkpoint'])
-        torch.save(model.module.state_dict(), p['selflabel_model'])
+        torch.save(model.state_dict(), p['selflabel_model'])
     
     # Evaluate and save the final model
     print('Evaluate model at the end')
+    model_checkpoint = torch.load(p['selflabel_model'], map_location='cpu')
+    model.load_state_dict(model_checkpoint)
+
     predictions = get_predictions(p, val_dataloader, model)
     clustering_stats = hungarian_evaluate(0, predictions, 
                                 class_names=val_dataset.classes,
                                 compute_confusion_matrix=True,
                                 confusion_matrix_file=os.path.join(p['selflabel_dir'], 'confusion_matrix.png'))
     print(clustering_stats)
-    torch.save(model.module.state_dict(), p['selflabel_model'])
+    #torch.save(model.state_dict(), p['selflabel_model'])
 
 
 if __name__ == "__main__":

@@ -39,12 +39,12 @@ def main():
 
     db_root_path = MyPath.db_root_dir(args.dataset)
     if args.dataset == 'cifar10':
-        trainset = datasets.CIFAR10(db_root_path, train=True)
+        trainset = datasets.CIFAR10(db_root_path, train=True, download=True)
         args.num_class = 10
         eps_list = [0.5, 1, 2, 3, 4]
 
     elif args.dataset == 'cifar100':
-        trainset = datasets.CIFAR100(db_root_path, train=True)
+        trainset = datasets.CIFAR100(db_root_path, train=True, download=True)
         args.num_class = 100
         eps_list = [1, 2, 3, 4, 6]
 
@@ -55,15 +55,17 @@ def main():
 
     clean_train_label = np.array(trainset.targets)
 
-    if not os.path.exists(os.path.join(db_root_path, "labeldptest")):
-        os.mkdir(os.path.join(db_root_path, "labeldptest"))
+    randres_path = os.path.join(db_root_path, "dplabel", "rr")
+
+    if not os.path.exists(randres_path):
+        os.makedirs(randres_path)
 
     for eps in eps_list:
         print("\n\nEpsilon", eps)
         print("Noise type: random response")
         noise_label = random_response(clean_train_label, eps, args.num_class, args.rseed)
 
-        np.save(os.path.join(db_root_path, "labeldptest", "eps"+str(eps)+".npy"), noise_label)
+        np.save(os.path.join(randres_path, "eps"+str(eps)+".npy"), noise_label)
 
 
 

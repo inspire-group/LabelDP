@@ -49,7 +49,8 @@ class MemoryBank(object):
         features = self.features.cpu().numpy()
         n, dim = features.shape[0], features.shape[1]
         index = faiss.IndexFlatIP(dim)
-        index = faiss.index_cpu_to_all_gpus(index)
+        if torch.cuda.is_available():
+            index = faiss.index_cpu_to_all_gpus(index)
         index.add(features)
         distances, indices = index.search(features, topk+1) # Sample itself is included
         
