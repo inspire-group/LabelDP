@@ -62,13 +62,13 @@ Code for "Machine Learning with Differentially Private Labels: Mechanisms and Fr
 Speicify your ```ckpt_path``` and ```data_path``` in ```LabelDP/mypath.py```
 
 ## Our Contributions
-We leverage advancements in machine learning unsupervised learning ([SCAN source repo](https://github.com/wvangansbeke/Unsupervised-Classification)) and semi-supervised learning ([FixMatch source repo](https://github.com/kekmodel/FixMatch-pytorch)), learning with noisy labels ([Aug-Descent source repo](https://github.com/KentoNishi/Augmentation-for-LNL)) to improve utility for machine learning models under label differential privacy. Specifically we propose [NoiseCluster](./SCAN/NoiseCluster.py) and [DenoiseSSL](./FixMatch/dataset/cifar.py#L32-L48) to improve the utility.
+We leverage advancements in machine learning including unsupervised learning ([SCAN source repo](https://github.com/wvangansbeke/Unsupervised-Classification)) and semi-supervised learning ([FixMatch source repo](https://github.com/kekmodel/FixMatch-pytorch)), learning with noisy labels ([Aug-Descent source repo](https://github.com/KentoNishi/Augmentation-for-LNL)) to improve utility for machine learning models under label differential privacy. Specifically we propose [NoiseCluster](./SCAN/NoiseCluster.py) and [DenoiseSSL](./FixMatch/dataset/cifar.py#L32-L48) to improve the utility.
 
 ## Datasets
 
 - [CIFAR10/CIFAR100](http://www.cs.toronto.edu/~kriz/cifar.html)
 
- - CIFAR10/CIFAR100 will be automatically downloaded when generated differentially private labels by [Randomized Response](#prepare-noise-file). Other scripts will assume CIFAR10/CIFAR100 to be in the expected folder (see [Files](#Files))without specifying ```download=True```.
+  - CIFAR10/CIFAR100 will be automatically downloaded when generated differentially private labels by [Randomized Response](#prepare-noise-file). Other scripts will assume CIFAR10/CIFAR100 to be in the expected folder (see [Files](#Files))without specifying ```download=True```.
 
 - [CINIC10](https://datashare.ed.ac.uk/handle/10283/3192)
   - download and save original dataset split ```train/valid/test``` to ```data_path/cinic10```, then run `python cinic10_convert_img2npy.py`  will save npy format of cinic10 dataset in ```data_path/cinic10/npy```
